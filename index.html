@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kenya National ID Card Generator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Kenya National ID Card Generator</h1>
+        <form id="idForm">
+            <label>Full Name</label>
+                <input type="text" id="fullName" maxlength="30" required>
+            <label>Date of Birth</label>
+                <input type="date" id="dob" required>
+            <label>Sex</label>
+                <select id="sex" required>
+                    <option value="">Select</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+            <label>District of Birth</label>
+                <input type="text" id="district" maxlength="15" required>
+            <label>Place of Issue</label>
+                <input type="text" id="place" maxlength="15" required>
+            <label>Upload Face Photo</label>
+                <input type="file" id="photoInput" accept="image/*" required>
+            <div class="photo-tip" style="margin-bottom:8px; color:#555; font-size:0.95em;">
+                For best results, <a href="https://www.remove.bg/" target="_blank" rel="noopener">remove the background from your photo using remove.bg</a> before uploading.
+            </div>
+            <div id="photoCropSection" style="display:none; margin-bottom: 12px;">
+                <p>Crop your photo:</p>
+                    <canvas id="cropCanvas" width="160" height="200" style="border:1px solid #bbb;"></canvas>
+                <button type="button" id="confirmCrop">Confirm Crop</button>
+            </div>
+            <img id="photoPreview" src="" alt="Photo Preview" style="display:none; max-width:100px; max-height:120px; margin-bottom:10px; border:1px solid #bbb; border-radius:4px;" />
+            <label>Signature (draw below)
+                <canvas id="signature" width="300" height="80"></canvas>
+            </label>
+            <button type="button" id="clearSig">Clear Signature</button>
+            <button type="submit">Generate ID Card</button>
+        </form>
+        <div id="cardPreview" class="card-preview" style="display:none;">
+            <h2>ID Card Preview</h2>
+            <div id="idCardHtml" class="id-card-html">
+                <div class="id-header">
+                    <span class="id-header-left">JAMHURI YA KENYA</span>
+                    <img src="coat_arms.png" class="id-coat-arms" alt="Coat of Arms">
+                    <span class="id-header-right">REPUBLIC OF KENYA</span>
+                </div>
+                <div class="id-row id-top-row">
+                    <span class="id-label">SERIAL NUMBER: <span id="serialNumberHtml"></span></span>
+                    <span class="id-label">ID NUMBER: <span id="idNumberHtml"></span></span>
+                </div>
+                <div class="id-row" style="margin-top: 10px;">
+                    <span class="id-label"><small>FULL NAMES </small></span>
+                </div>
+                <div class="id-row">
+                    <span class="id-value" id="fullNameHtml"></span>
+                </div>
+                <div class="id-main">
+                    <div class="id-photo-section">
+                        <img id="photoHtml" class="id-photo" src="" alt="Photo">
+                    </div>
+                    <div class="id-details-section">
+                        <div><span class="id-label">DATE OF BIRTH</span><span class="id-value" id="dobHtml"></span></div>
+                        <div><span class="id-label">SEX</span><span class="id-value" id="sexHtml"></span></div>
+                        <div><span class="id-label">DISTRICT OF BIRTH</span><span class="id-value" id="districtHtml"></span></div>
+                        <div><span class="id-label">PLACE OF ISSUE</span><span class="id-value" id="placeHtml"></span></div>
+                        <div><span class="id-label">DATE OF ISSUE</span><span class="id-value" id="issueDateHtml"></span></div>
+                        <div>
+                            <span class="id-label">HOLDER'S SIGN.</span>
+                            <img id="signatureHtml" class="id-signature" src="" alt="Signature">
+                        </div>
+                    </div>
+                    <div class="id-shield-section">
+                        <img src="shield.png" class="id-shield" alt="Shield">
+                        <img src="fingerprint.png" class="id-fingerprint" alt="Fingerprint">
+                    </div>
+                </div>
+            </div>
+            <button id="downloadBtn">Download as PNG</button>
+        </div>
+    </div>
+    <img id="coatArmsImg" src="coat_arms.png" style="display:none;" alt="Coat of Arms" />
+    <img id="shieldImg" src="shield.png" style="display:none;" alt="Kenyan Shield" />
+    <img id="fingerprintImg" src="fingerprint.png" style="display:none;" alt="Fingerprint" />
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="script.js"></script>
+</body>
+<footer style="text-align:center; margin-top:32px; margin-bottom: 32px; color:#444; font-size:1.05em;">
+    Made with <span style="color:#e25555; font-size:1.2em; vertical-align:middle;">❤</span> by
+    <a href="mailto:webappdevpro@gmail.com" style="color:#217346; text-decoration:none; font-weight:bold;">Kasmuel Kamau Kipchoge</a>
+</footer>
+</html> 
