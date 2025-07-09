@@ -98,7 +98,7 @@ small {
 }
 .id-header-left, .id-header-right {
     font-size: 1.3rem;
-    font-weight: bold;
+    font-weight: bolder;
     color: #134d2d;
     letter-spacing: 1px;
 }

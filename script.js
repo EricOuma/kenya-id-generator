@@ -115,7 +115,7 @@ cropCanvas.addEventListener('mousemove', function(e) {
     }
     if (cropRect) {
         cropCtx.strokeStyle = '#007b3a';
-        cropCtx.lineWidth = 2;
+        cropCtx.lineWidth = 1;
         cropCtx.strokeRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
     }
 });
