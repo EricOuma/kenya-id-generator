@@ -97,11 +97,16 @@ cropCanvas.addEventListener('mousedown', function(e) {
 cropCanvas.addEventListener('mousemove', function(e) {
     if (!cropStart) return;
     const [x, y] = getCropXY(e);
+    let dx = x - cropStart[0];
+    let dy = y - cropStart[1];
+    let size = Math.min(Math.abs(dx), Math.abs(dy));
+    let sx = dx < 0 ? cropStart[0] - size : cropStart[0];
+    let sy = dy < 0 ? cropStart[1] - size : cropStart[1];
     cropRect = {
-        x: Math.min(cropStart[0], x),
-        y: Math.min(cropStart[1], y),
-        w: Math.abs(cropStart[0] - x),
-        h: Math.abs(cropStart[1] - y)
+        x: sx,
+        y: sy,
+        w: size,
+        h: size
     };
     // Redraw image and rectangle
     cropCtx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
@@ -124,19 +129,25 @@ cropCanvas.addEventListener('mouseup', function(e) {
         cropStart = null;
         return;
     }
-    // Get cropped image data (may include stroke if visible)
-    const imageData = cropCtx.getImageData(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
-    // Create a temp canvas to hold the cropped image
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = cropRect.w;
-    tempCanvas.height = cropRect.h;
-    tempCanvas.getContext('2d').putImageData(imageData, 0, 0);
-    croppedPhoto = new Image();
-    croppedPhoto.onload = function() {
-        photoPreview.src = croppedPhoto.src;
-        photoPreview.style.display = 'block';
-    };
-    croppedPhoto.src = tempCanvas.toDataURL('image/png');
+    // Validate cropRect dimensions
+    let x = Math.round(cropRect.x);
+    let y = Math.round(cropRect.y);
+    let w = Math.round(cropRect.w);
+    let h = Math.round(cropRect.h);
+    if (w > 0 && h > 0 && Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(w) && Number.isFinite(h)) {
+        const imageData = cropCtx.getImageData(x, y, w, h);
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = w;
+        tempCanvas.height = h;
+        tempCanvas.getContext('2d').putImageData(imageData, 0, 0);
+        croppedPhoto = new Image();
+        croppedPhoto.onload = function() {
+            photoPreview.src = croppedPhoto.src;
+            photoPreview.style.display = 'block';
+        };
+        croppedPhoto.src = tempCanvas.toDataURL();
+        document.getElementById('photoCropSection').style.display = 'none';
+    }
     cropStart = null;
 });
 function getCropXY(e) {
@@ -152,6 +163,72 @@ confirmCropBtn.addEventListener('click', function() {
         alert('Please select and crop your photo.');
     }
 });
+
+// Touch events for cropping (mobile support)
+cropCanvas.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    cropStart = getCropXY(e);
+    cropRect = null;
+}, { passive: false });
+
+cropCanvas.addEventListener('touchmove', function(e) {
+    if (!cropStart) return;
+    e.preventDefault();
+    const [x, y] = getCropXY(e);
+    let dx = x - cropStart[0];
+    let dy = y - cropStart[1];
+    let size = Math.min(Math.abs(dx), Math.abs(dy));
+    let sx = dx < 0 ? cropStart[0] - size : cropStart[0];
+    let sy = dy < 0 ? cropStart[1] - size : cropStart[1];
+    cropRect = {
+        x: sx,
+        y: sy,
+        w: size,
+        h: size
+    };
+    // Redraw image and rectangle (same as mousemove)
+    cropCtx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
+    if (uploadedPhoto) {
+        let scale = Math.max(cropCanvas.width / uploadedPhoto.width, cropCanvas.height / uploadedPhoto.height);
+        let w = uploadedPhoto.width * scale;
+        let h = uploadedPhoto.height * scale;
+        let x0 = (cropCanvas.width - w) / 2;
+        let y0 = (cropCanvas.height - h) / 2;
+        cropCtx.drawImage(uploadedPhoto, x0, y0, w, h);
+    }
+    if (cropRect) {
+        cropCtx.strokeStyle = '#007b3a';
+        cropCtx.lineWidth = 0.3;
+        cropCtx.strokeRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
+    }
+}, { passive: false });
+
+cropCanvas.addEventListener('touchend', function(e) {
+    if (!cropRect || !uploadedPhoto) {
+        cropStart = null;
+        return;
+    }
+    // Validate cropRect dimensions
+    let x = Math.round(cropRect.x);
+    let y = Math.round(cropRect.y);
+    let w = Math.round(cropRect.w);
+    let h = Math.round(cropRect.h);
+    if (w > 0 && h > 0 && Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(w) && Number.isFinite(h)) {
+        const imageData = cropCtx.getImageData(x, y, w, h);
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = w;
+        tempCanvas.height = h;
+        tempCanvas.getContext('2d').putImageData(imageData, 0, 0);
+        croppedPhoto = new Image();
+        croppedPhoto.onload = function() {
+            photoPreview.src = croppedPhoto.src;
+            photoPreview.style.display = 'block';
+        };
+        croppedPhoto.src = tempCanvas.toDataURL();
+        document.getElementById('photoCropSection').style.display = 'none';
+    }
+    cropStart = null;
+}, { passive: false });
 
 // Form logic
 const form = document.getElementById('idForm');
@@ -190,6 +267,22 @@ form.onsubmit = function(e) {
         alert('Please fill all fields.');
         return;
     }
+    // If no croppedPhoto, auto-crop the uploaded image to a center square
+    if (!croppedPhoto && uploadedPhoto) {
+        // Calculate center square
+        let img = uploadedPhoto;
+        let size = Math.min(img.width, img.height);
+        let sx = Math.floor((img.width - size) / 2);
+        let sy = Math.floor((img.height - size) / 2);
+        // Create a temp canvas
+        let tempCanvas = document.createElement('canvas');
+        tempCanvas.width = size;
+        tempCanvas.height = size;
+        let tempCtx = tempCanvas.getContext('2d');
+        tempCtx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
+        croppedPhoto = new Image();
+        croppedPhoto.src = tempCanvas.toDataURL('image/png');
+    }
     if (!croppedPhoto) {
         alert('Please upload and crop your photo.');
         return;
@@ -212,6 +305,10 @@ form.onsubmit = function(e) {
     const age = today.getFullYear() - dobDate.getFullYear() - (today < new Date(today.getFullYear(), dobDate.getMonth(), dobDate.getDate()) ? 1 : 0);
     if (age < 18) {
         alert('User must be at least 18 years old.');
+        return;
+    }
+    if (age > 120) {
+        alert('Age cannot be greater than 120 years.');
         return;
     }
     // Check signature
